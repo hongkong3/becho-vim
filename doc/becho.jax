@@ -1,0 +1,341 @@
+*becho.txt*                For Vim version 8.2.       Last change: 2022 Feb 26
+                  ___                 ___              ~
+                  | >\                | -\         vim ~
+                  |  c___  _____  ____|  <___  ______  ~
+                  |  __  \/  _  \/  __|  __  \/ \__/ \ ~
+                  |  | \ /  /_\ /  /  |  | \ /__/  \__\~
+                  |  |_/ \  ____\  \__|  | / \  \__/  /~
+                  |______/\_____/\____|__|/__/\_/__\_/ ~
+
+[目次]~
+
+■はじめに:                       |becho-introduction|
+    プラグイン情報                    |becho-information|
+
+■使い方:                         |becho-usage|
+    - :Becho                          |:Becho|
+    - :Belog                          |:Belog|
+    - becho#echo()                    |becho#echo()|
+    - becho#log()                     |becho#log()|
+
+    メッセージの着色                  |becho-coloring|
+
+■オプション設定:                 |becho-option|
+    オプション一覧                    |becho-option-list|
+    各オプションの詳細                |becho-option-detail|
+
+■更新履歴:                       |becho-changelog|
+
+~
+※ご注意※ ~
+    本ヘルプの内容は自動翻訳を元に作成されています。
+    奇妙な表現あるかもですがご容赦下さい。
+
+==============================================================================
+
+■はじめに:                                               *becho-introduction*
+
+"becho-vim" は Vim-script用の |:echo| 拡張コマンドのプラグインです。
+
+
+本プラグインのコマンドには以下のような機能があります:
+
+- 表示メッセージを簡単に着色できます。
+    文字列内に特定の書式を含める事で、|highlight|による色付けを行います。
+    `:Becho "Colored as #0{comment}# and #Statement{statement}#."`
+
+- リスト・辞書型の変数の内容を整形して表示出来ます。
+    この機能は初期状態で有効ですが無効化も可能です。 >
+    {
+      key: 'value',
+      LIST: [
+        1, 2, 3, 4,
+        'Short contents can also be grouped together'
+      ]
+    }
+<
+- 実行時の時刻・引数をプレフィックスとして表示します。
+    オプション設定で非表示化・内容の変更も可能です。
+
+- 同様の内容を出力用のバッファへ出力する事も可能です。
+    バッファへの出力には `:Belog` コマンドを使います。
+
+~
+要注意:~
+  本プラグインではスクリプトローカル変数(s:var)を引数として扱えません。
+  このため、Vim9-scriptにおいては非常に使いにくくなります。
+
+------------------------------------------------------------------------------
+
+プラグイン情報                                             *becho-information*
+
+Plugin:   becho-vim
+
+Version:  1.00
+
+License:  MIT License.
+
+    Copyright © 2022 HongKong
+
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so, subject to
+    the following conditions:
+
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Latest:   https://github.com/hongkong3/becho-vim
+
+~
+ATTENTION
+    This "becho" is Vim-plugin, no relationship with any real person,
+    organization, or name.
+
+==============================================================================
+
+■使い方:                                                        *becho-usage*
+
+後述のコマンドか関数で使用します。
+各コマンドの違いは、出力先がコマンドラインかバッファかだけです。
+
+※ご注意※ ~
+    スクリプトローカルの変数は扱えません。(s:variable 等)
+    スクリプトローカルの変数の内容を表示したい場合は、一旦ほかの変数に代入する
+    等して下さい。 >
+        :let tmp = s:var
+        :Becho tmp
+<
+
+:Becho[!] {expr1} ..                                                  *:Becho*
+
+    使い方は |:echo| コマンドと大体同じです。
+    文字列内に所定の書式があれば、その部分を|highlight|で色付け表示します。
+      参照: |becho-coloring|
+
+    リスト・辞書型の内容があれば、整形(＆色付け)表示します。
+    また、実行時の引数等をプレフィックスとして表示します。
+
+    [!] が含まれている時は、整形・プレフィックスは無効化し色付けだけ行います。
+
+
+:Belog[!] {expr1} ..                                                  *:Belog*
+
+    |:Becho| コマンドと同様の内容を専用のログバッファへ出力します。
+    |:echomsg| コマンドの代用です。
+
+    ログバッファ内で `c` を押すと、バッファ内のメッセージを消去します。
+    ロブバッファ内で `q` を押すと、ログバッファを閉じます。
+
+
+becho#echo("{message}", {args}="", {options}={})                *becho#echo()*
+
+    |:Becho|コマンドの本体の関数です。
+    {message}にはメッセージとして表示する内容を"文字列"で指定します。
+    
+    {args}には引数としてプレフィックスに表示される内容を指定します。
+    (プレフィックスが表示されない場合、この内容も表示されません)
+
+    {options}には辞書型変数でオプションを直接指定できます。
+    また{options}に `1` を指定した場合、メッセージの整形とプレフィックス表示を
+    無効化します。(コマンドでの[!]指定と同じ動作です)
+    
+
+becho#log("{message}", {args}="", {options}={})                  *becho#log()*
+
+    |:Belog|コマンドの本体の関数です。
+    使い方は|becho#echo()|同様です。表示場所がログバッファになるだけです。
+
+
+------------------------------------------------------------------------------
+
+メッセージの着色                       *becho-coloring* *becho-color* *becho-text*
+
+メッセージとして表示される文字列内に以下のような書式が含まれる場合、
+その部分は指定したハイライトグループで着色されます。
+
+  # highlight-name { strings.. }#      `"colored by #MoreMsg{highlight-name}#"`
+  # color-index { strings.. }#         `"colored by #7{color-index}#"`
+
+~
+ハイライト名の代わりにリスト型のオプション変数 |becho-option-color| 内の
+インデックス番号を指定すると、その番号のハイライト名に置き換えられます。
+
+デフォルトのハイライト名とインデックス番号の対応は以下の通りです:
+  s:becho.color = [
+    `0.`  Comment,      `1.`  Constant,     `2.`  Identifier,
+    `3.`  Statement,    `4.`  Preproc,      `5.`  Underlined,
+    `6.`  ErrorMsg,     `7.`  Todo,         `8.`  Pmenu,
+  ]
+
+~
+入れ子になった指定もたぶん対応してます... >
+  :Becho "#7{nesting #5{colored}# messages}#"
+
+==============================================================================
+
+■オプション設定:                                               *becho-option*
+
+このプラグインではスコープ毎にオプション設定が可能です。
+表示内容に合わせてバッファやタブページごとに設定を変える事ができます。
+
+各スコープによるオプションの優先順位は以下の通りです:
+  (function({options}) or [!]bang)  >  b:  >  w:  >  t:  >  g:  >  s:`(default)`
+
+各オプションは辞書型変数内の値です、予め辞書型変数を定義して指定してください。 >
+ ex)  let g:becho = {}
+      let g:becho.format = 1
+
+------------------------------------------------------------------------------
+
+オプション一覧                                             *becho-option-list*
+
+以下は、各オプション項目とデフォルト値の一覧です:
+>
+  s:becho.format = 40                         # length of formated LIST/DICT
+                                                (if 0 then no formated)
+  s:becho.prefix = '==== %X `#arg#` ===='     # formatting-text of Prefix
+  
+  s:becho.color = [                           # preset Colors (highlight-name)
+      'Comment',
+      'Constant',
+      'Identifier',
+      'Statement',
+      'Preproc',
+      'Underlined',
+      'ErrorMsg',
+      'Todo',
+      'Pmenu',
+  ]
+
+  " below options for log-buffer (:Belog)
+
+  s:becho.reverse = 0                         # new message to  0: add-bottom 
+                                                                1: insert-top
+  s:becho.window = 'belowright split'         # window creation command
+  
+  s:becho.option = ''                         # additional option -> :setlocal
+  
+  s:becho.size = [0, 0]                       # keep to window size [row, col]
+  
+  s:becho.buffer = 'becho://log-%x/output'    # buffer name (%x -> tabpagenr)
+
+------------------------------------------------------------------------------
+
+各オプションの詳細                                       *becho-option-detail*
+
+Note: 各オプション先頭の`?:`部分は、`b:`, `w:`, `t:`, `g:`のスコープ指定を示してます。
+
+
+?:becho.format `= 40`                                      *becho-option-format*
+    1 以上の数値を指定すると、リスト・辞書型変数のような内容を複数行に整形して
+    表示します。
+    0 以下を指定すると、この整形表示は行われません。
+
+    また、この数値は一行あたりの文字数の目安としても使用します。
+    短い項目は複数個まとめて一行に表示されます。
+    一行毎に各項目を表示させたい場合は、1 を指定して下さい。
+
+    また文字列値は `#1`、キー名は `#2` のハイライトで着色されます。
+      参照: |becho-option-color|
+
+
+?:becho.prefix `= "==== %X '#arg#' ===="`                   *bcho-option-prefix*
+    メッセージ表示の際にプレフィックスとして表示される内容の指定です。
+    メッセージの上に、`#0` の色で表示されます。
+
+    指定された文字列は、|strftime()|関数の引数として使用します。(%X -> hh:mm:ss)
+    文字列内の `#arg#` の部分は、関数実行時の{args}やコマンド実行時の引数に
+    置き換えられます。
+
+    `""` を指定した場合、プレフィックスは無しでメッセージのみを表示します。
+
+
+?:becho.color `= [...]`                                     *becho-option-color*
+    ハイライトグループの名前を格納したリスト型変数を指定します。
+    メッセージ内で `"#1{ ... }#"` のように記述すると、数値部分がリスト内の
+    ハイライトグループ名に置き換えられて、{ }内の部分を着色表示します。
+      -> `"#Constant{ ... }#"`
+
+    デフォルトでは以下のような内容です:
+      s:becho.color = [
+        `0.`  Comment,      `1.`  Constant,     `2.`  Identifier,
+        `3.`  Statement,    `4.`  Preproc,      `5.`  Underlined,
+        `6.`  ErrorMsg,     `7.`  Todo,         `8.`  Pmenu,
+      ]
+
+    リスト内のハイライトグループの個数に制限はありません。
+
+~
+以降は :Belog (ログバッファ)専用オプションです... ~
+
+
+?:becho.reverse `= 0`                                     *becho-option-reverse*
+    ログバッファ内のメッセージを追加する位置の指定です。
+    0 なら最終行に追加します。1 なら先頭行に挿入します。
+
+
+?:becho.window `= "belowright split"`                      *becho-option-window*
+    ログバッファ用のウィンドウ作成コマンドの指定です。
+    Vimスクリプトとしてそのまま使用します。  参照: |opening-window|
+
+
+?:becho.option `= ""`                                      *becho-option-option*
+    ログバッファ用のウィンドウの追加オプション設定です。
+    |:setlocal|コマンドの引数としてそのまま使用します。
+
+    Note: 適用されるのはウィンドウ作成時のみです。
+          既に作成済みログバッファウィンドウには反映されません。
+
+    ちなみにプラグインでは以下のようなオプション設定を施します:
+      |'concealcursor'|`=nvc`  |'conceallevel'|`=2`  |'nobuflisted'|  |'nolist'|
+      |'buftype'|`=nofile`  |'filetype'|`=output`  |'signcolumn'|`=no`  |'foldcolumn'|`=0`
+      |'nocursorcolumn'|  |'readonly'|  |'nomodifiable'|
+
+    |'concealcursor'|と|'conceallevel'|はそのままにしておいて下さい。
+    他はお好みで自由に変更してください。
+
+
+?:becho.size `= [0, 0]`                                      *becho-option-size*
+    ログバッファ用ウィンドウの表示サイズ指定です。
+    1 以上を指定すると、そのサイズを維持しようとします。
+
+    値はそれぞれ `[rows(height), cols(width)]` のサイズ指定です。
+    ウィンドウサイズの維持は、ウィンドウの分割方向のみ機能します。
+    
+
+?:becho.buffer `= "becho://log-%x/output"`                 *becho-option-buffer*
+    ログバッファの名前の指定です。
+    文字列内の "%x" 部分はタブページ毎の番号に置き換えられます。
+
+    Vimのタイトルバー等にこの名前が表示される事があります。
+
+
+==============================================================================
+
+■更新履歴:                                                  *becho-changelog*
+
+1.00:
+- add Japanese help.
+
+0.92:
+- make the plugin standalone.
+
+0.70:
+- completed as a Plugin.
+  but, it is dependent on external modules.
+- written Vim-help.
+
+==============================================================================
+ vim:set tw=78 ft=help norl cole=2 cocu=nvc nolist:           Author: HongKong

@@ -1,0 +1,345 @@
+*becho.txt*                For Vim version 8.2.       Last change: 2022 Feb 17
+                  ___                 ___              ~
+                  | >\                | -\         vim ~
+                  |  c___  _____  ____|  <___  ______  ~
+                  |  __  \/  _  \/  __|  __  \/ \__/ \ ~
+                  |  | \ /  /_\ /  /  |  | \ /__/  \__\~
+                  |  |_/ \  ____\  \__|  | / \  \__/  /~
+                  |______/\_____/\____|__|/__/\_/__\_/ ~
+
+CONTENTS
+
+INTRODUCTION                            |becho-introduction|
+    Plugin Information                      |becho-information|
+
+USAGE                                   |becho-usage|
+    - :Becho                                |:Becho|
+    - :Belog                                |:Belog|
+    - becho#echo()                          |becho#echo()|
+    - becho#log()                           |becho#log()|
+
+    Text Coloring                           |becho-coloring|
+
+OPTION                                  |becho-option|
+    Options List                            |becho-option-list|
+    Options Detail                          |becho-option-detail|
+
+CHANGELOG                               |becho-changelog|
+
+~
+CAUTION
+    This help has been prepared baded on automatic translation.
+    Please forgive me if there are some strange sentences...
+
+==============================================================================
+
+INTRODUCTION                                              *becho-introduction*
+
+"becho-vim" is extension command to the |:echo| in Vim-script, as Vim-plugin.
+
+
+This plugin provides Command the following features:
+
+- Ease colorization of message text.
+    If there are specific format in the String,
+    it will be colored as |highlight|.
+    `:Becho "Colored as #0{comment}# and #Statement{statement}#."`
+
+- Format and display the values of LIST and DICT variables.
+    The default setting is Enabled, but it can be Disabled. >
+    {
+      key: 'value',
+      LIST: [
+        1, 2, 3, 4,
+        'Short contents can also be grouped together'
+      ]
+    }
+<
+- Displays the Time and Argument prefixes.
+    You can chage the contents or hide them by setting options.
+
+- The same contents as above can be output to buffer.
+    To outpt to a buffer, use the `:Belog` command.
+
+~
+CAUTION
+  The script local variables (s:var) cannot be treated as arguments.
+  This makes them very difficult to use in Vim9-script...
+
+------------------------------------------------------------------------------
+
+Plugin Information                                         *becho-information*
+
+Plugin:   becho-vim
+
+Version   1.00
+
+License:  MIT License.
+
+    Copyright © 2022 HongKong
+
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so, subject to
+    the following conditions:
+
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Latest:   https://github.com/hongkong3/becho-vim
+
+~
+ATTENTION
+    This "becho" is Vim-plugin, no relationship with any real person,
+    organization, or name.
+
+==============================================================================
+
+USAGE                                                            *becho-usage*
+
+Use it by executing the following Command, or calling the Function.
+
+CAUTION
+    Script local variables cannot be used.
+    If you want to display the value of a script local variable,
+    asign it to temporary variable, etc... >
+        :let tmp = s:var
+        :Becho tmp
+
+
+:Becho[!] {expr1} ..                                                  *:Becho*
+
+    This is almost the same as |:echo| command.
+    If there are specific format in the String, it will be colored as
+    |highlight|.  See -> |becho-coloring|
+
+    Depending on the option settings, it automatically displays the 
+    formatted (& colored) contents of DICT and LIST type variables,
+    and prefixes arguments, etc.
+
+    If with the bang[!], it will disable them and only do text-coloring.
+
+
+:Belog[!] {expr1} ..                                                  *:Belog*
+
+    Display the same contents as |:Becho|, in a specific log-buffer.
+    This is a substitute command for |:echomsg|.
+
+    Hit the `c` in log-buffer, will clear messages.
+    Hit the `q` in log-buffer, will close the log-buffer window.
+
+
+becho#echo("{message}", {args}="", {options}={})                *becho#echo()*
+
+    Function of the |:Becho| command.
+    {message} is specifies the text to be displayed as a String.
+    
+    {args} will be displayed as arguments in the prefixes.
+    If the prefixes are not displayed, it will not be shown.
+
+    {options} is DICT variable, allowing direct specification of options.
+    Also, if {options}==1, variable formatting and coloring, and prefix
+    display are disabled.
+    
+
+becho#log("{message}", {args}="", {options}={})                  *becho#log()*
+
+    Function of the |:Belog| command.
+    It is same as |becho#echo()| except that it is displayed in log-buffer.
+
+
+------------------------------------------------------------------------------
+
+Text Coloring                          *becho-coloring* *becho-color* *becho-text*
+
+If there is any of the following formatting in String to be displayed,
+it will be colored by |highlight| group.
+
+  # highlight-name { strings.. }#      `"colored by #MoreMsg{highlight-name}#"`
+  # color-index { strings.. }#         `"colored by #7{color-index}#"`
+
+~
+color-index is specify item index number, in the LIST of |becho-option-color|.
+It just replaces to pre-set highlight-name.
+
+The default color-index and highlight is this:
+  s:becho.color = [
+    `0.`  Comment,      `1.`  Constant,     `2.`  Identifier,
+    `3.`  Statement,    `4.`  Preproc,      `5.`  Underlined,
+    `6.`  ErrorMsg,     `7.`  Todo,         `8.`  Pmenu,
+  ]
+
+~
+Also, I think nesting is possible... >
+  :Becho "#7{nesting #5{colored}# messages}#"
+
+==============================================================================
+
+OPTION                                                          *becho-option*
+
+In this plugin, option values can be set in any Scopes.
+Different options can be set for each buffer, tab-page, etc.., according to
+the displaying contents.
+
+The priority order for each Scope is as below:
+  (function({options}) or [!]bang)  >  b:  >  w:  >  t:  >  g:  >  s:`(default)`
+
+Also, when setting each option, please define a DICT variable in advance. >
+ ex)  let g:becho = {}
+      let g:becho.format = 1
+
+------------------------------------------------------------------------------
+
+Options List                                               *becho-option-list*
+
+The following is list of options and default values:
+>
+  s:becho.format = 40                         # length of formated LIST/DICT
+                                                (if 0 then no formated)
+  s:becho.prefix = '==== %X `#arg#` ===='     # formatting-text of Prefix
+  
+  s:becho.color = [                           # preset Colors (highlight-name)
+      'Comment',
+      'Constant',
+      'Identifier',
+      'Statement',
+      'Preproc',
+      'Underlined',
+      'ErrorMsg',
+      'Todo',
+      'Pmenu',
+  ]
+
+  " below options for log-buffer (:Belog)
+
+  s:becho.reverse = 0                         # new message to  0: add-bottom 
+                                                                1: insert-top
+  s:becho.window = 'belowright split'         # window creation command
+  
+  s:becho.option = ''                         # additional option -> :setlocal
+  
+  s:becho.size = [0, 0]                       # keep to window size [row, col]
+  
+  s:becho.buffer = 'becho://log-%x/output'    # buffer name (%x -> tabpagenr)
+
+------------------------------------------------------------------------------
+
+Options Detail                                           *becho-option-detail*
+
+Note: The leading `?:` should be a character indicating as arbitrary Scopes.
+      `b:`, `w:`, `t:`, or `g:`
+
+
+?:becho.format `= 40`                                      *becho-option-format*
+    If 1 or more, the contents of LIT ot DICT variable will be formatted
+    into multiple rows.
+    If it is 0 or less, no formatting is performed.
+
+    The value is also used as reference for the number of characters per line.
+    Some short items will be combined into a single line.
+    If you want to display one item per line, specify 1.
+
+    Also colored by highlight of String as `#1`, and Key-Name as `#2`.
+      See -> |becho-option-color|
+
+
+?:becho.prefix `= "==== %X '#arg#' ===="`                   *bcho-option-prefix*
+    This is setting of the Prefix to be displayed at the same time
+    when displaying a Message.
+    the Prefix will be displayed by highlight of `#0`, above the Messages.
+
+    This String will be used for |strftime()|. (%X -> hh:mm:ss)
+    Also, the `#arg#` part of String will be replaced by function({args}) or
+    Command argument.
+
+    If set to `""`, no prefix only the Message will be displayed.
+
+
+?:becho.color `= [...]`                                     *becho-option-color*
+    The LIST of |highlight|-names to be use as color-index.
+    When `"#1{ ... }#"` in the Message, the numeric-part will replaced to
+    highlight-name in this LIST. -> `"#Constant{ ... }#"`
+
+    The following settings are carried by default:
+      s:becho.color = [
+        `0.`  Comment,      `1.`  Constant,     `2.`  Identifier,
+        `3.`  Statement,    `4.`  Preproc,      `5.`  Underlined,
+        `6.`  ErrorMsg,     `7.`  Todo,         `8.`  Pmenu,
+      ]
+
+    There is no limit to number of highlight-names in this LIST.
+
+~
+following options are for :Belog (log-buffer)... ~
+
+
+?:becho.reverse `= 0`                                     *becho-option-reverse*
+    Specifies position to add the Message in log-buffer.
+
+    If `0`, Message is added to end of log-buffer.
+    If `1`, Message is inserted top of line in log-buffer. 
+
+
+?:becho.window `= "belowright split"`                      *becho-option-window*
+    This Command is used to create a window for log-buffer.
+    It is used in Vim-Script as it is.  See -> |opening-window|
+
+
+?:becho.option `= ""`                                      *becho-option-option*
+    After creating the log-buffer window, you can specify additional options
+    to be set with |:setlocal| command.
+
+    Note: It is applied only when creating the log-buffer window.
+
+    By the way, the plugin has the following options:
+      |'concealcursor'|`=nvc`  |'conceallevel'|`=2`  |'nobuflisted'|  |'nolist'|
+      |'buftype'|`=nofile`  |'filetype'|`=output`  |'signcolumn'|`=no`  |'foldcolumn'|`=0`
+      |'nocursorcolumn'|  |'readonly'|  |'nomodifiable'|
+
+    Please leave the |'concealcursor'| and |'conceallevel'| options as they are,    
+    and feel free to change the others.
+
+
+?:becho.size `= [0, 0]`                                      *becho-option-size*
+    The size settings of log-buffer window.
+    If a value is 1 or than, the size will be maintained.
+
+    The correspond are `[rows(height), cols(width)]` sizes.
+    The value of the window's split direction will be enabled.
+    
+
+?:becho.buffer `= "becho://log-%x/output"`                 *becho-option-buffer*
+    This is setting for the name of log-buffer. 
+    The "`%x`" part will be replaced by the number of each tabpage.
+
+    You may see this name in Vim-windows, etc.
+
+
+==============================================================================
+
+CHANGELOG                                                    *becho-changelog*
+
+1.00:
+- add Japanese help
+
+0.92:
+- make the plugin standalone.
+
+0.70:
+- completed as a Plugin.
+  but, it is dependent on external modules.
+- written Vim-help.
+
+==============================================================================
+ vim:set tw=78 ft=help cole=2 cocu=nvc norl nolist:           Author: HongKong
